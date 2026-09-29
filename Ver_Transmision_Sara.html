@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ver transmisión · Señal Escolar</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0d090a;color:#fff;font-family:Arial,sans-serif}
+main{max-width:720px;margin:auto;padding:24px 16px 50px}
+h1{font-size:42px;margin:10px 0}p{color:#bbb;line-height:1.45}
+.card{background:#181314;border:1px solid #393032;border-radius:20px;padding:20px;margin:16px 0}
+video{width:100%;background:#000;border-radius:15px;max-height:65vh;object-fit:contain}
+button{border:0;border-radius:12px;padding:15px 18px;background:#b3221b;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin:6px 4px 6px 0}
+button.secondary{background:#30282a}input{width:100%;padding:15px;border-radius:12px;border:1px solid #55494b;background:#0f0c0d;color:#fff;font-size:18px;margin:8px 0}
+.code{font-size:34px;letter-spacing:7px;font-weight:900;color:#ff4b43;text-align:center;padding:10px}
+.status{padding:13px;border-radius:12px;background:#100d0e;color:#bbb;margin-top:12px}
+.red{color:#ff4b43;font-weight:bold}
+.small{font-size:13px;color:#888}
+</style></head>
+<body><main>
+<div class="small">● SEÑAL ESCOLAR · TRANSMISIÓN PRIVADA</div>
+<h1>VER EN VIVO</h1>
+<p>Ingresá el código del transmisor para ver la cámara en directo.</p>
+
+<div class="card">
+<input id="room" maxlength="6" placeholder="Código de transmisión">
+<button id="watch">👀 Ver transmisión</button>
+<div class="status" id="status">Escribí el código que aparece en la página del transmisor.</div>
+</div>
+<div class="card"><video id="remote" autoplay playsinline controls></video></div>
+<script>
+let peer,call;
+const status=document.getElementById('status'), remote=document.getElementById('remote');
+peer=new Peer();
+peer.on('open',()=>status.textContent='Conectado. Escribí el código.');
+peer.on('error',e=>status.textContent='Error: '+e.type);
+document.getElementById('watch').onclick=()=>{
+ const code=document.getElementById('room').value.trim().toLowerCase();
+ if(code.length<4){status.textContent='Ingresá el código completo.';return}
+ status.textContent='Conectando con la transmisión…';
+ call=peer.call('sara-'+code,new MediaStream());
+ call.on('stream',stream=>{remote.srcObject=stream;status.innerHTML='<span class="red">🔴 EN VIVO</span> · Transmisión conectada';remote.play().catch(()=>{})});
+ call.on('close',()=>status.textContent='La transmisión terminó.');
+ call.on('error',e=>status.textContent='No se pudo conectar: '+e.type);
+};
+</script>
+</main></body></html>

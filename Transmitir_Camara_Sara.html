@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Transmitir · Señal Escolar</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0d090a;color:#fff;font-family:Arial,sans-serif}
+main{max-width:720px;margin:auto;padding:24px 16px 50px}
+h1{font-size:42px;margin:10px 0}p{color:#bbb;line-height:1.45}
+.card{background:#181314;border:1px solid #393032;border-radius:20px;padding:20px;margin:16px 0}
+video{width:100%;background:#000;border-radius:15px;max-height:65vh;object-fit:contain}
+button{border:0;border-radius:12px;padding:15px 18px;background:#b3221b;color:#fff;font-weight:800;font-size:16px;cursor:pointer;margin:6px 4px 6px 0}
+button.secondary{background:#30282a}input{width:100%;padding:15px;border-radius:12px;border:1px solid #55494b;background:#0f0c0d;color:#fff;font-size:18px;margin:8px 0}
+.code{font-size:34px;letter-spacing:7px;font-weight:900;color:#ff4b43;text-align:center;padding:10px}
+.status{padding:13px;border-radius:12px;background:#100d0e;color:#bbb;margin-top:12px}
+.red{color:#ff4b43;font-weight:bold}
+.small{font-size:13px;color:#888}
+</style></head>
+<body><main>
+<div class="small">● SEÑAL ESCOLAR · TRANSMISIÓN PRIVADA</div>
+<h1>TRANSMITIR EN VIVO</h1>
+<p>Esta es la página del transmisor. Activá la cámara y compartí el código con quienes quieran mirar.</p>
+
+<div class="card">
+<video id="local" autoplay muted playsinline></video>
+<div class="status" id="status">Preparando conexión…</div>
+<div style="text-align:center">
+<button id="start">📹 Iniciar cámara</button>
+<button class="secondary" id="stop">⏹ Detener</button>
+</div>
+</div>
+<div class="card">
+<p>Pasale este código a quienes quieran mirar:</p>
+<div class="code" id="code">------</div>
+<p class="small">El código cambia cada vez que abrís la página. La transmisión es directa entre navegadores mediante WebRTC.</p>
+</div>
+<script>
+let peer,stream;
+const status=document.getElementById('status'), code=document.getElementById('code'), local=document.getElementById('local');
+function makeId(){return 'sara-' + Math.random().toString(36).slice(2,8)}
+peer=new Peer(makeId());
+peer.on('open',id=>{code.textContent=id.replace('sara-','').toUpperCase();status.textContent='Listo. Iniciá la cámara.'});
+peer.on('error',e=>{status.textContent='Error de conexión: '+e.type});
+document.getElementById('start').onclick=async()=>{
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:true});
+  local.srcObject=stream; status.innerHTML='<span class="red">🔴 TRANSMITIENDO</span> · Esperando espectadores…';
+ }catch(e){status.textContent='No se pudo acceder a la cámara. Permití cámara y micrófono en Chrome.'}
+};
+peer.on('call',call=>{
+ if(!stream){call.answer();return}
+ call.answer(stream);
+ status.innerHTML='<span class="red">🔴 TRANSMITIENDO</span> · Espectador conectado';
+});
+document.getElementById('stop').onclick=()=>{
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;local.srcObject=null}
+ status.textContent='Transmisión detenida.';
+};
+</script>
+</main></body></html>
